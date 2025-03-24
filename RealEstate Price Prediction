@@ -1,4 +1,63 @@
-Title: "Real-Estate Predictive Modeling for HousePrice Dataset"
-Description:
-"This repository contains a machine learning project that implements data preprocessing, feature engineering, and predictive modeling using various supervised learning algorithms. The project includes Pycharm, model evaluation metrics, and hyperparameter tuning.
-Tools: Python, Scikit-Learn, Pandas, Matplotlib."
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+
+# Load the dataset
+def load_data(file_path):
+    return pd.read_excel(file_path)
+
+# Preprocess the data
+def preprocess_data(df):
+    # Handle missing values
+    df = df.dropna()  # Drop rows with missing values
+
+    # Encode categorical variables
+    label_encoders = {}
+    for column in df.select_dtypes(include=['object']).columns:
+        le = LabelEncoder()
+        df[column] = le.fit_transform(df[column])
+        label_encoders[column] = le
+
+    # Separate features and target
+    X = df.drop('Price', axis=1)  # Replace 'Price' with actual target column name if different
+    y = df['Price']
+
+    # Scale numerical features
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    return X_scaled, y, scaler, label_encoders
+
+# Train the model
+def train_model(X_train, y_train):
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    return model
+
+# Evaluate the model
+def evaluate_model(model, X_test, y_test):
+    y_pred = model.predict(X_test)
+    mae = mean_absolute_error(y_test, y_pred)
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    print(f"Mean Absolute Error: {mae:.2f}")
+    print(f"Root Mean Squared Error: {rmse:.2f}")
+
+# Main function
+def main():
+    file_path = 'HousePrediction.xlsx'  # Update with the correct file path if necessary
+
+    # Load and preprocess data
+    df = load_data(file_path)
+    X, y, scaler, label_encoders = preprocess_data(df)
+
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Train and evaluate the model
+    model = train_model(X_train, y_train)
+    evaluate_model(model, X_test, y_test)
+
+
